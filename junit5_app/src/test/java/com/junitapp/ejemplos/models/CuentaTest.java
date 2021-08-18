@@ -11,13 +11,14 @@ class CuentaTest {
 
     @Test
     void testNombreCuenta() {
-        Cuenta cuenta = new Cuenta("Facundo", new BigDecimal("1000.12345"));
+        Cuenta cuenta = new Cuenta("Facundo GF", new BigDecimal("1000.12345"));
 //        cuenta.setPersona("Facundo");
         String expected = "Facundo";
         String actual = cuenta.getPersona();
-        assertNotNull(actual);
-        assertEquals(expected, actual);
-//        assertTrue(actual.equals("Facundo"));
+        assertNotNull(actual, "La cuenta no puede ser nula");
+        assertEquals(expected, actual, () -> "El nombre de la cuenta no es el esperado: se esperaba " + expected
+            + " sin embargo fue " + actual);
+//        assertTrue(actual.equals("Facundo"), () -> "Nombre cuenta esperada debe ser igual a la real");
     }
 
     @Test
@@ -59,9 +60,9 @@ class CuentaTest {
     @Test
     void testDineroInsuficienteExceptionCuenta() {
         Cuenta cuenta = new Cuenta("Facundo", new BigDecimal("1000.12345"));
-        Exception exception = assertThrows(DineroInsuficienteException.class, () -> {
-            cuenta.debito(new BigDecimal(1500));
-        });
+        Exception exception = assertThrows(DineroInsuficienteException.class,
+            () -> cuenta.debito(new BigDecimal(1500))
+        );
 
         String actual = exception.getMessage();
         String expected = "Dinero Insuficiente";
@@ -92,9 +93,11 @@ class CuentaTest {
         banco.setNombre("Banco del Estado");
         banco.transferir(cuenta2, cuenta1, new BigDecimal(500));
 
-        assertAll(() -> assertEquals("1000.8989", cuenta2.getSaldo().toPlainString()),
-            () -> assertEquals("3000", cuenta1.getSaldo().toPlainString()),
-            () -> assertEquals(2, banco.getCuentas().size()),
+        assertAll(() -> assertEquals("1000.8989", cuenta2.getSaldo().toPlainString(),
+                "el valor del saldo de la cuenta2 no es el esperado"),
+            () -> assertEquals("3000", cuenta1.getSaldo().toPlainString(),
+                "el valor del saldo de la cuenta1 no es el esperado"),
+            () -> assertEquals(2, banco.getCuentas().size(), "el banco no tiene las cuentas esperadas"),
             () -> assertEquals("Banco del Estado", cuenta1.getBanco().getNombre()),
             () -> assertEquals("Facundo",
                 banco.getCuentas().stream()
