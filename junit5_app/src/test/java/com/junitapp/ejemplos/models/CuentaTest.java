@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.*;
 
 //Esto no se recomienda hacer porque se quiere buscar utilizar test unitarios con bajo acoplamiento
 //entre ellos y no que dependan unos de otros, sin embargo se puede hacer.
@@ -143,87 +144,127 @@ class CuentaTest {
     @Test
     @EnabledOnOs(OS.WINDOWS)
     void testSoloWindows() {
+        assertTrue(true);
     }
 
     @Test
     @EnabledOnOs({OS.LINUX, OS.MAC})
     void testSoloLinuxMac() {
+        assertTrue(true);
     }
 
     @Test
     @DisabledOnOs(OS.LINUX)
     void testNoLinux() {
+        assertTrue(true);
     }
 
     @Test
     @EnabledOnJre(JRE.JAVA_9)
     void soloJdk9() {
+        assertTrue(true);
     }
 
     @Test
     @EnabledOnJre(JRE.JAVA_8)
     void soloJdk8() {
+        assertTrue(true);
     }
 
     @Test
     @DisabledOnJre(JRE.JAVA_8)
     void testNoJdk8() {
+        assertTrue(true);
     }
 
     @Test
     void imprimirSystemProperties() {
         Properties properties = System.getProperties();
         properties.forEach((k, v) -> System.out.println(k + ":" + v));
+        assertTrue(true);
     }
 
     @Test
     @EnabledIfSystemProperty(named = "java.version", matches = ".*8.*")
     void testJavaVersion() {
+        assertTrue(true);
     }
 
     @Test
     @DisabledIfSystemProperty(named = "os.arch", matches = ".*32.*")
     void testSolo64() {
+        assertTrue(true);
     }
 
     @Test
     @EnabledIfSystemProperty(named = "os.arch", matches = ".*32.*")
     void testNo64() {
+        assertTrue(true);
     }
 
     @Test
     @EnabledIfSystemProperty(named = "user.name", matches = "facundo.mediotte")
     void testUsername() {
+        assertTrue(true);
     }
 
     @Test
     @EnabledIfSystemProperty(named = "ENV", matches = "dev")
     void testDev() {
+        assertTrue(true);
     }
 
     @Test
     void imprimirVariablesAmbiente() {
         Map<String, String> env = System.getenv();
         env.forEach((k, v) -> System.out.println(k + " = " + v));
+        assertTrue(true);
     }
 
     @Test
     @EnabledIfEnvironmentVariable(named = "JAVA_HOME", matches = ".*java-11-openjdk.*")
     void testJavaHome() {
+        assertTrue(true);
     }
 
     @Test
     @EnabledIfEnvironmentVariable(named = "NUMBER_OF_PROCESSORS", matches = "12")
     void testProcesadores() {
+        assertTrue(true);
     }
 
     @Test
     @EnabledIfEnvironmentVariable(named = "ENVIRONMENT", matches = "dev")
     void testEnv() {
+        assertTrue(true);
     }
 
     @Test
     @DisabledIfEnvironmentVariable(named = "ENVIRONMENT", matches = "prod")
     void testEnvProdDisabled() {
+        assertTrue(true);
+    }
+
+    @Test
+    @DisplayName("test saldo cuenta dev")
+    void testSaldoCuentaDev() {
+        boolean esDev = "dev".equals(System.getProperty("ENV"));
+        assumeTrue(esDev); //Si es falso deshabilita la prueba de forma programatica
+        assertNotNull(cuenta.getSaldo());
+        assertEquals(1000.12345, cuenta.getSaldo().doubleValue());
+        assertFalse(cuenta.getSaldo().compareTo(BigDecimal.ZERO) < 0);
+        assertTrue(cuenta.getSaldo().compareTo(BigDecimal.ZERO) > 0); //Lo mismo que la anterior condición
+    }
+
+    @Test
+    @DisplayName("test saldo cuenta dev 2")
+    void testSaldoCuentaDev2() {
+        boolean esDev = "dev".equals(System.getProperty("ENV"));
+        assumingThat(esDev, () -> {
+            assertNotNull(cuenta.getSaldo());
+            assertEquals(1000.123456, cuenta.getSaldo().doubleValue());
+        });
+        assertFalse(cuenta.getSaldo().compareTo(BigDecimal.ZERO) < 0);
+        assertTrue(cuenta.getSaldo().compareTo(BigDecimal.ZERO) > 0); //Lo mismo que la anterior condición
     }
 }
