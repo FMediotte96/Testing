@@ -6,12 +6,12 @@ import app.mockito.ejemplos.repositories.PreguntaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,13 +31,7 @@ class ExamenServiceImplTest {
 
     @Test
     void findExamenByName() {
-        List<Examen> datos = Arrays.asList(
-            new Examen(5L, "Matemáticas"),
-            new Examen(6L, "Lenguaje"),
-            new Examen(7L, "Historia")
-        );
-
-        when(examenRepository.findAll()).thenReturn(datos);
+        when(examenRepository.findAll()).thenReturn(Datos.EXAMENES);
         Optional<Examen> examen = service.findExamenByName("Matemáticas");
 
         assertTrue(examen.isPresent());
@@ -53,5 +47,15 @@ class ExamenServiceImplTest {
         Optional<Examen> examen = service.findExamenByName("Matemáticas");
 
         assertFalse(examen.isPresent());
+    }
+
+    @Test
+    void testPreguntasExamen() {
+        when(examenRepository.findAll()).thenReturn(Datos.EXAMENES);
+        when(preguntaRepository.findPreguntasByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+
+        Examen examen = service.findExamenByNameConPreguntas("Matemáticas");
+        assertEquals(5, examen.getPreguntas().size());
+        assertTrue(examen.getPreguntas().contains("integrales"));
     }
 }
