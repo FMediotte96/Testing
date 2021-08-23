@@ -2,7 +2,9 @@ package app.mockito.ejemplos.services;
 
 import app.mockito.ejemplos.Datos;
 import app.mockito.ejemplos.models.Examen;
+import app.mockito.ejemplos.repositories.ExamenRepository;
 import app.mockito.ejemplos.repositories.ExamenRepositoryImpl;
+import app.mockito.ejemplos.repositories.PreguntaRepository;
 import app.mockito.ejemplos.repositories.PreguntaRepositoryImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +14,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -225,7 +228,7 @@ class ExamenServiceImplTest {
 //        when(preguntaRepository.findPreguntasByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
         doAnswer(invocation -> {
             Long id = invocation.getArgument(0);
-            return id == 5L? Datos.PREGUNTAS : Collections.emptyList();
+            return id == 5L ? Datos.PREGUNTAS : Collections.emptyList();
         }).when(preguntaRepository).findPreguntasByExamenId(anyLong());
         //El when que va seguido dsp de un do encapsula el mock que se pasa como argumento
 
@@ -276,5 +279,29 @@ class ExamenServiceImplTest {
         Examen examen = service.findExamenByNameConPreguntas("Matemáticas");
         assertEquals(5L, examen.getId());
         assertEquals("Matemáticas", examen.getNombre());
+    }
+
+    @Test
+    void testSpy() {
+        // Spy requiere que se cree desde una clase concreta porque va a
+        // llamar a la funcionalidad de la clase real no de un mock
+        ExamenRepository examenRepository2 = spy(ExamenRepositoryImpl.class);
+        PreguntaRepository preguntaRepository2 = spy(PreguntaRepositoryImpl.class);
+        ExamenService examenService = new ExamenServiceImpl(examenRepository2, preguntaRepository2);
+
+        List<String> preguntas = Collections.singletonList("aritmética");
+//        when(preguntaRepository2.findPreguntasByExamenId(anyLong())).thenReturn(preguntas);
+
+        //Para evitar el comportamiento de que se está llamando al método
+        doReturn(preguntas).when(preguntaRepository2).findPreguntasByExamenId(anyLong());
+
+        Examen examen = examenService.findExamenByNameConPreguntas("Matemáticas");
+        assertEquals(5, examen.getId());
+        assertEquals("Matemáticas", examen.getNombre());
+        assertEquals(1, examen.getPreguntas().size());
+        assertTrue(examen.getPreguntas().contains("aritmética"));
+
+        verify(examenRepository2).findAll();
+        verify(preguntaRepository2).findPreguntasByExamenId(anyLong());
     }
 }
