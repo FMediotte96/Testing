@@ -8,6 +8,11 @@ import java.util.concurrent.TimeUnit;
 public class ExamenRepositoryOtro implements ExamenRepository {
 
     @Override
+    public Examen save(Examen examen) {
+        return null;
+    }
+
+    @Override
     public List<Examen> findAll() {
         try {
             System.out.println("ExamenRepositoryOtro");
