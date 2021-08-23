@@ -9,7 +9,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 
 import java.util.Collections;
 import java.util.List;
@@ -87,23 +89,39 @@ class ExamenServiceImplTest {
 
     @Test
     void testNoExisteExamenVerify() {
+        // Given
         when(examenRepository.findAll()).thenReturn(Collections.emptyList());
         when(preguntaRepository.findPreguntasByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
 
+        // when
         Examen examen = service.findExamenByNameConPreguntas("Matemáticas");
-        assertNull(examen);
 
+        // then
+        assertNull(examen);
         verify(examenRepository).findAll();
         verify(preguntaRepository).findPreguntasByExamenId(5L);
     }
 
     @Test
     void testSaveExamen() {
+        // Given
         Examen newExamen = Datos.EXAMEN;
         newExamen.setPreguntas(Datos.PREGUNTAS);
 
-        when(examenRepository.save(any(Examen.class))).thenReturn(Datos.EXAMEN);
+        when(examenRepository.save(any(Examen.class))).then(new Answer<Examen>() {
+            Long secuencia = 8L;
+            @Override
+            public Examen answer(InvocationOnMock invocation) throws Throwable {
+                Examen examen = invocation.getArgument(0);
+                examen.setId(secuencia++);
+                return examen;
+            }
+        });
+
+        // When
         Examen examen = service.save(newExamen);
+
+        // Then
         assertNotNull(examen.getId());
         assertEquals(8L, examen.getId());
         assertEquals("Física", examen.getNombre());
