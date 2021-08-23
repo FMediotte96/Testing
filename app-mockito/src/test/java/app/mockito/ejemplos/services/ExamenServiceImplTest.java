@@ -206,4 +206,63 @@ class ExamenServiceImplTest {
 
         assertEquals(5L, captor.getValue());
     }
+
+    @Test
+    void testDoThrow() {
+        Examen examen = Datos.EXAMEN;
+        examen.setPreguntas(Datos.PREGUNTAS);
+
+        //DoThrow se utiliza con los métodos void
+        doThrow(IllegalArgumentException.class).when(preguntaRepository).saveSome(anyList());
+
+        assertThrows(IllegalArgumentException.class, () -> service.save(examen));
+    }
+
+    @Test
+    void testDoAnswer() {
+        when(examenRepository.findAll()).thenReturn(Datos.EXAMENES);
+//        when(preguntaRepository.findPreguntasByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        doAnswer(invocation -> {
+            Long id = invocation.getArgument(0);
+            return id == 5L? Datos.PREGUNTAS : Collections.emptyList();
+        }).when(preguntaRepository).findPreguntasByExamenId(anyLong());
+        //El when que va seguido dsp de un do encapsula el mock que se pasa como argumento
+
+        Examen examen = service.findExamenByNameConPreguntas("Matemáticas");
+        assertEquals(5, examen.getPreguntas().size());
+        assertTrue(examen.getPreguntas().contains("geometría"));
+        assertEquals(5L, examen.getId());
+        assertEquals("Matemáticas", examen.getNombre());
+
+        verify(preguntaRepository).findPreguntasByExamenId(anyLong());
+    }
+
+    @Test
+    void testDoAnswerSaveExamen() {
+        // Given
+        Examen newExamen = Datos.EXAMEN;
+        newExamen.setPreguntas(Datos.PREGUNTAS);
+
+        doAnswer(new Answer<Examen>() {
+            Long secuencia = 8L;
+
+            @Override
+            public Examen answer(InvocationOnMock invocation) throws Throwable {
+                Examen examen = invocation.getArgument(0);
+                examen.setId(secuencia++);
+                return examen;
+            }
+        }).when(examenRepository).save(any(Examen.class));
+
+        // When
+        Examen examen = service.save(newExamen);
+
+        // Then
+        assertNotNull(examen.getId());
+        assertEquals(8L, examen.getId());
+        assertEquals("Física", examen.getNombre());
+
+        verify(examenRepository).save(any(Examen.class));
+        verify(preguntaRepository).saveSome(anyList());
+    }
 }
