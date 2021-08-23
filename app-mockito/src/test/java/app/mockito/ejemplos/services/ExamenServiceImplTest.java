@@ -31,6 +31,9 @@ class ExamenServiceImplTest {
     @InjectMocks
     private ExamenServiceImpl service;
 
+    @Captor
+    ArgumentCaptor<Long> captor;
+
     @BeforeEach
     void setUp() {
         //Habilitamos el uso de annotations para esta clase
@@ -189,5 +192,18 @@ class ExamenServiceImplTest {
                 "que imprime mockito en caso de que falle el test " +
                 argument + " debe ser un entero positivo";
         }
+    }
+
+    @Test
+    void testArgumentCaptor() {
+        when(examenRepository.findAll()).thenReturn(Datos.EXAMENES);
+//        when(preguntaRepository.findPreguntasByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+
+        service.findExamenByNameConPreguntas("Matemáticas");
+
+//        ArgumentCaptor<Long> captor = ArgumentCaptor.forClass(Long.class);
+        verify(preguntaRepository).findPreguntasByExamenId(captor.capture());
+
+        assertEquals(5L, captor.getValue());
     }
 }
