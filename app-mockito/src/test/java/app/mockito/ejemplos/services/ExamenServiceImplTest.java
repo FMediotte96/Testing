@@ -1,8 +1,9 @@
 package app.mockito.ejemplos.services;
 
+import app.mockito.ejemplos.Datos;
 import app.mockito.ejemplos.models.Examen;
-import app.mockito.ejemplos.repositories.ExamenRepository;
-import app.mockito.ejemplos.repositories.PreguntaRepository;
+import app.mockito.ejemplos.repositories.ExamenRepositoryImpl;
+import app.mockito.ejemplos.repositories.PreguntaRepositoryImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,9 +25,9 @@ import static org.mockito.Mockito.*;
 class ExamenServiceImplTest {
 
     @Mock
-    private ExamenRepository examenRepository;
+    private ExamenRepositoryImpl examenRepository;
     @Mock
-    private PreguntaRepository preguntaRepository;
+    private PreguntaRepositoryImpl preguntaRepository;
 
     @InjectMocks
     private ExamenServiceImpl service;
@@ -40,8 +41,8 @@ class ExamenServiceImplTest {
         /*MockitoAnnotations.openMocks(this);
 
         //Simula una implementación de ExamenRepository
-        examenRepository = mock(ExamenRepository.class);
-        preguntaRepository = mock(PreguntaRepository.class);
+        examenRepository = mock(ExamenRepositoryImpl.class);
+        preguntaRepository = mock(PreguntaRepositoryImpl.class);
         service = new ExamenServiceImpl(examenRepository, preguntaRepository);*/
     }
 
@@ -264,5 +265,16 @@ class ExamenServiceImplTest {
 
         verify(examenRepository).save(any(Examen.class));
         verify(preguntaRepository).saveSome(anyList());
+    }
+
+    @Test
+    void testDoCallRealMethod() {
+        when(examenRepository.findAll()).thenReturn(Datos.EXAMENES);
+//        when(preguntaRepository.findPreguntasByExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+
+        doCallRealMethod().when(preguntaRepository).findPreguntasByExamenId(anyLong());
+        Examen examen = service.findExamenByNameConPreguntas("Matemáticas");
+        assertEquals(5L, examen.getId());
+        assertEquals("Matemáticas", examen.getNombre());
     }
 }
