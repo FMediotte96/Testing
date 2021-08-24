@@ -330,4 +330,46 @@ class ExamenServiceImplTest {
         inOrder.verify(examenRepository).findAll();
         inOrder.verify(preguntaRepository).findPreguntasByExamenId(6L);
     }
+
+    @Test
+    void testNumeroDeInvocaciones() {
+        when(examenRepository.findAll()).thenReturn(Datos.EXAMENES);
+        service.findExamenByNameConPreguntas("Matemáticas");
+
+        verify(preguntaRepository).findPreguntasByExamenId(5L);
+        verify(preguntaRepository, times(1)).findPreguntasByExamenId(5L);
+        verify(preguntaRepository, atLeast(1)).findPreguntasByExamenId(5L);
+        verify(preguntaRepository, atLeastOnce()).findPreguntasByExamenId(5L);
+        verify(preguntaRepository, atMost(1)).findPreguntasByExamenId(5L);
+        verify(preguntaRepository, atMostOnce()).findPreguntasByExamenId(5L);
+    }
+
+    @Test
+    void testNumeroDeInvocaciones2() {
+        when(examenRepository.findAll()).thenReturn(Datos.EXAMENES);
+        service.findExamenByNameConPreguntas("Matemáticas");
+
+//        verify(preguntaRepository).findPreguntasByExamenId(5L); falla
+        verify(preguntaRepository, times(2)).findPreguntasByExamenId(5L);
+        verify(preguntaRepository, atLeast(2)).findPreguntasByExamenId(5L);
+        verify(preguntaRepository, atLeastOnce()).findPreguntasByExamenId(5L);
+        verify(preguntaRepository, atMost(20)).findPreguntasByExamenId(5L);
+//        verify(preguntaRepository, atMostOnce()).findPreguntasByExamenId(5L); falla
+    }
+
+    @Test
+    void testNumeroDeInvocaciones3() {
+        when(examenRepository.findAll()).thenReturn(Collections.emptyList());
+        service.findExamenByNameConPreguntas("Matemáticas");
+
+        verify(preguntaRepository, never()).findPreguntasByExamenId(5L);
+        verifyNoInteractions(preguntaRepository);
+
+        verify(examenRepository).findAll();
+        verify(examenRepository, times(1)).findAll();
+        verify(examenRepository, atLeast(1)).findAll();
+        verify(examenRepository, atLeastOnce()).findAll();
+        verify(examenRepository, atMost(10)).findAll();
+        verify(examenRepository, atMostOnce()).findAll();
+    }
 }
