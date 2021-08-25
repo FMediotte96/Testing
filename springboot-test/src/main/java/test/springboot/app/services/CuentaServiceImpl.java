@@ -11,8 +11,8 @@ import java.math.BigDecimal;
 @Service
 public class CuentaServiceImpl implements CuentaService {
 
-    private CuentaRepository cuentaRepository;
-    private BancoRepository bancoRepository;
+    private final CuentaRepository cuentaRepository;
+    private final BancoRepository bancoRepository;
 
     public CuentaServiceImpl(CuentaRepository cuentaRepository, BancoRepository bancoRepository) {
         this.cuentaRepository = cuentaRepository;
