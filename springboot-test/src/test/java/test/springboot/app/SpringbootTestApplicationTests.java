@@ -2,14 +2,15 @@ package test.springboot.app;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import test.springboot.app.exceptions.DineroInsuficienteException;
 import test.springboot.app.models.Banco;
 import test.springboot.app.models.Cuenta;
 import test.springboot.app.repositories.BancoRepository;
 import test.springboot.app.repositories.CuentaRepository;
 import test.springboot.app.services.CuentaService;
-import test.springboot.app.services.CuentaServiceImpl;
 
 import java.math.BigDecimal;
 
@@ -20,15 +21,20 @@ import static test.springboot.app.Datos.*;
 @SpringBootTest
 class SpringbootTestApplicationTests {
 
+    @MockBean
     CuentaRepository cuentaRepository;
+
+    @MockBean
     BancoRepository bancoRepository;
+
+    @Autowired
     CuentaService service;
 
     @BeforeEach
     void setUp() {
-        cuentaRepository = mock(CuentaRepository.class);
-        bancoRepository = mock(BancoRepository.class);
-        service = new CuentaServiceImpl(cuentaRepository, bancoRepository);
+//        cuentaRepository = mock(CuentaRepository.class);
+//        bancoRepository = mock(BancoRepository.class);
+//        service = new CuentaServiceImpl(cuentaRepository, bancoRepository);
 //        Datos.CUENTA_001.setSaldo(new BigDecimal("1000"));
 //        Datos.CUENTA_002.setSaldo(new BigDecimal("2000"));
 //        Datos.BANCO.setTotalTransferencias(0);
@@ -80,8 +86,9 @@ class SpringbootTestApplicationTests {
         assertEquals("1000", saldoOrigen.toPlainString());
         assertEquals("2000", saldoDestino.toPlainString());
 
+        BigDecimal monto = new BigDecimal("1200");
         assertThrows(DineroInsuficienteException.class, () ->
-            service.transferir(1L, 2L, new BigDecimal("1200"), 1L)
+            service.transferir(1L, 2L, monto, 1L)
         );
 
         saldoOrigen = service.revisarSaldo(1L);
@@ -98,7 +105,7 @@ class SpringbootTestApplicationTests {
         verify(cuentaRepository, never()).update(any(Cuenta.class));
 
         verify(bancoRepository).findById(1L);
-        verify(bancoRepository,never()).update(any(Banco.class));
+        verify(bancoRepository, never()).update(any(Banco.class));
 
         verify(cuentaRepository, times(5)).findById(anyLong());
         verify(cuentaRepository, never()).findAll();
@@ -112,7 +119,7 @@ class SpringbootTestApplicationTests {
         Cuenta cuenta2 = service.findById(1L);
 
         assertSame(cuenta1, cuenta2);
-        assertTrue(cuenta1 == cuenta2);
+        //assertTrue(cuenta1 == cuenta2);
         assertEquals("Facundo", cuenta1.getPersona());
         assertEquals("Facundo", cuenta2.getPersona());
 
