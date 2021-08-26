@@ -6,6 +6,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import test.springboot.app.models.Cuenta;
 import test.springboot.app.repositories.CuentaRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -45,5 +46,52 @@ class IntegrationJpaTest {
         List<Cuenta> cuentas = cuentaRepository.findAll();
         assertFalse(cuentas.isEmpty());
         assertEquals(2, cuentas.size());
+    }
+
+    @Test
+    void testSave() {
+        //Given
+        Cuenta cuentaPepe = new Cuenta(null, "Pepe", new BigDecimal("3000"));
+
+        //When
+        Cuenta cuenta = cuentaRepository.save(cuentaPepe);
+
+        //Then
+        assertEquals("Pepe", cuenta.getPersona());
+        assertEquals("3000", cuenta.getSaldo().toPlainString());
+    }
+
+    @Test
+    void testUpdate() {
+        //Given
+        Cuenta cuentaPepe = new Cuenta(null, "Pepe", new BigDecimal("3000"));
+
+        //When
+        Cuenta cuenta = cuentaRepository.save(cuentaPepe);
+
+        //Then
+        assertEquals("Pepe", cuenta.getPersona());
+        assertEquals("3000", cuenta.getSaldo().toPlainString());
+
+        //When
+        cuenta.setSaldo(new BigDecimal("3800"));
+        Cuenta cuentaActualizada = cuentaRepository.save(cuenta);
+
+        //Then
+        assertEquals("Pepe", cuentaActualizada.getPersona());
+        assertEquals("3800", cuentaActualizada.getSaldo().toPlainString());
+    }
+
+    @Test
+    void testDelete() {
+        Cuenta cuenta = cuentaRepository.findById(2L).orElseThrow(null);
+        assertEquals("John", cuenta.getPersona());
+
+        cuentaRepository.delete(cuenta);
+        assertThrows(NoSuchElementException.class, () -> {
+            cuentaRepository.findById(2L).orElseThrow(NoSuchElementException::new);
+//            cuentaRepository.findByPersona("John").orElseThrow(NoSuchElementException::new);
+        });
+        assertEquals(1, cuentaRepository.findAll().size());
     }
 }
