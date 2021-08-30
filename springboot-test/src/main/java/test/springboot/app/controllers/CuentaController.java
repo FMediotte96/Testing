@@ -8,9 +8,10 @@ import test.springboot.app.services.CuentaService;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequestMapping("/api/cuentas")
@@ -22,10 +23,22 @@ public class CuentaController {
         this.cuentaService = cuentaService;
     }
 
+    @GetMapping
+    @ResponseStatus(OK)
+    public List<Cuenta> listar() {
+        return cuentaService.findAll();
+    }
+
     @GetMapping("/{id}")
     @ResponseStatus(OK)
     public Cuenta detalle(@PathVariable Long id) {
         return cuentaService.findById(id);
+    }
+
+    @PostMapping
+    @ResponseStatus(CREATED)
+    public Cuenta save(@RequestBody Cuenta cuenta) {
+        return cuentaService.save(cuenta);
     }
 
     @PostMapping("/transferir")
