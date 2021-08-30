@@ -1,18 +1,23 @@
 package test.springboot.app.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
+import test.springboot.app.models.TransactionDto;
 import test.springboot.app.services.CuentaService;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static test.springboot.app.Datos.*;
-import static org.mockito.Mockito.*;
 
 @WebMvcTest(CuentaController.class)
 class CuentaControllerTest {
@@ -23,6 +28,13 @@ class CuentaControllerTest {
     @MockBean
     private CuentaService cuentaService;
 
+    private ObjectMapper objectMapper;
+
+    @BeforeEach
+    void setUp() {
+        objectMapper = new ObjectMapper();
+    }
+
     @Test
     void testDetalle() throws Exception {
         //Given
@@ -30,7 +42,7 @@ class CuentaControllerTest {
 
         //When
         mvc.perform(get("/api/cuentas/1").contentType(MediaType.APPLICATION_JSON))
-        //Then
+            //Then
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.persona").value("Facundo"))
@@ -38,4 +50,29 @@ class CuentaControllerTest {
 
         verify(cuentaService).findById(1L);
     }
+
+    @Test
+    void testTransferir() throws Exception {
+
+        //Given
+        TransactionDto dto = new TransactionDto();
+        dto.setCuentaOrigenId(1L);
+        dto.setCuentaDestinoId(2L);
+        dto.setMonto(new BigDecimal("100"));
+        dto.setBancoId(1L);
+
+        //When
+        mvc.perform(post("/api/cuentas/transferir")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto))
+            )
+        //Then
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.date").value(LocalDate.now().toString()))
+            .andExpect(jsonPath("$.mensaje").value("Transferencia realizada con éxito!"))
+            .andExpect(jsonPath("$.transaction.cuentaOrigenId").value(dto.getCuentaOrigenId()));
+
+    }
+
 }
