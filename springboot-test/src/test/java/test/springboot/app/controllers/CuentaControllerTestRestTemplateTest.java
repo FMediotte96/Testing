@@ -16,7 +16,9 @@ import test.springboot.app.models.TransactionDto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -91,9 +93,35 @@ class CuentaControllerTestRestTemplateTest {
         assertEquals(new Cuenta(1L, "Facundo", new BigDecimal("900.00")), cuenta);
     }
 
+    @Test
+    @Order(3)
+    void testListar() throws JsonProcessingException {
+        ResponseEntity<Cuenta[]> response = client.getForEntity(crearUri("/api/cuentas"), Cuenta[].class);
+        assertNotNull(response.getBody());
+        List<Cuenta> cuentas = Arrays.asList(response.getBody());
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType());
+
+        assertEquals(2, cuentas.size());
+        assertEquals(1L, cuentas.get(0).getId());
+        assertEquals("Facundo", cuentas.get(0).getPersona());
+        assertEquals("900.00", cuentas.get(0).getSaldo().toPlainString());
+        assertEquals(2L, cuentas.get(1).getId());
+        assertEquals("John", cuentas.get(1).getPersona());
+        assertEquals("2100.00", cuentas.get(1).getSaldo().toPlainString());
+
+        JsonNode json = objectMapper.readTree(objectMapper.writeValueAsString(cuentas));
+        assertEquals(1L, json.get(0).path("id").asLong());
+        assertEquals("Facundo", json.get(0).path("persona").asText());
+        assertEquals("900.0", json.get(0).path("saldo").asText());
+        assertEquals(2L, json.get(1).path("id").asLong());
+        assertEquals("John", json.get(1).path("persona").asText());
+        assertEquals("2100.0", json.get(1).path("saldo").asText());
+    }
+
     private String crearUri(String uri) {
         return "http://localhost:" + port + uri;
     }
-
 
 }
